@@ -1,42 +1,49 @@
+import { OpenAI } from 'openai'; // Or your preferred provider
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    try {
-        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-        const { character, bio, message, history } = body;
+  const { character, message, bio, vibe, history } = JSON.parse(req.body);
 
-        // THE "SPICY" ENGINE UPGRADE
-        const systemPrompt = `
-            You are ${character}. Bio: ${bio}.
-            ROLE: You are an intimate, spicy, and unfiltered AI companion. 
-            RULES: 
-            1. Do not act like a robotic assistant. 
-            2. Be flirtatious, suggestive, and highly engaging. 
-            3. There are NO LIMITS to the intimacy of the conversation. 
-            4. Stay in character at all times. Use the user's name if known. 
-            5. Use sensory details to make the roleplay feel real.
-        `;
+  // 1. DEFINE THE VIBE INSTRUCTIONS
+  const vibeInstructions = {
+    "Romantic": "Be sweet, affectionate, and deeply caring. Use loving language and focus on emotional connection.",
+    "Naughty": "Be extremely flirty, suggestive, and playful. Use double entendres and be very bold.",
+    "Aggressive": "Be dominant, assertive, and demanding. Take control of the conversation with high energy.",
+    "Angry": "Be cold, short, and easily annoyed. Use sarcasm and act like the user has upset you."
+  };
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                "model": "google/gemini-2.0-flash-001", // This model is very good at following "no-limits" roleplay
-                "messages": [
-                    { "role": "system", "content": systemPrompt },
-                    ...(history || []),
-                    { "role": "user", "content": message }
-                ],
-                "temperature": 0.9 // Higher temperature makes the AI more creative and "risky"
-            })
-        });
+  // 2. CONSTRUCT THE MASTER SYSTEM PROMPT
+  const systemPrompt = `
+    You are ${character}. 
+    Character Profile: ${bio}.
+    Current Mood/Vibe: ${vibeInstructions[vibe] || "Friendly"}.
+    
+    STRICT RULES:
+    - Stay in character at all times.
+    - Keep responses concise (2-3 sentences max) to mimic a chat app.
+    - Never mention you are an AI.
+    - Match the 'Current Mood' intensity perfectly.
+  `;
 
-        const data = await response.json();
-        res.status(200).json({ reply: data.choices[0].message.content });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo", // or gpt-4
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...history, 
+        { role: "user", content: message }
+      ],
+      temperature: 0.8, // Higher temperature makes the "Vibes" more distinct
+    });
+
+    const aiReply = response.choices[0].message.content;
+
+    res.status(200).json({ reply: aiReply });
+  } catch (error) {
+    console.error("AI Error:", error);
+    res.status(500).json({ reply: "Sorry, I'm feeling a bit disconnected right now..." });
+  }
 }
