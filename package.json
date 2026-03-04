@@ -1,8 +1,10 @@
 {
-  "name": "chathub-ai",
+  "name": "chathub-ai-empire",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "openai": "^4.28.0"
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
   }
 }
