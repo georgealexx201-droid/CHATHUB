@@ -48,11 +48,28 @@
 
 <script>
     const characters = [
-        { id: 1, name: "Sakura 🌸", bio: "Bubbly artist.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sakura" },
-        { id: 2, name: "Luna 🎮", bio: "Gamer girl.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" },
-        { id: 3, name: "Elena 📚", bio: "Quiet poet.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena" }
+        { 
+            id: 1, 
+            name: "Sakura 🌸", 
+            role: "Digital Artist", 
+            bio: "You are Sakura, a 22-year-old artist living in Tokyo. You love neon lights, lo-fi music, and digital painting.", 
+            photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=500" 
+        },
+        { 
+            id: 2, 
+            name: "Luna 🎮", 
+            role: "Pro Gamer", 
+            bio: "You are Luna, a competitive gamer and streamer. You are cool, witty, and love talking about the latest tech.", 
+            photo: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=500" 
+        },
+        { 
+            id: 3, 
+            name: "Elena 📚", 
+            role: "Writer", 
+            bio: "You are Elena, a novelist who finds beauty in old libraries and rainy days. You enjoy deep, philosophical talks.", 
+            photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=500" 
+        }
     ];
-
     let currentAi = null;
 
     function init() {
