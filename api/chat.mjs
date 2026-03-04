@@ -1,7 +1,10 @@
 import { OpenAI } from 'openai';
 
 const openai = new OpenAI({ 
-    apiKey: process.env.OPENAI_API_KEY 
+    apiKey: process.env.OPENAI_API_KEY,
+    // Add these if your OpenAI dashboard shows them, otherwise leave them out
+    // organization: process.env.OPENAI_ORG_ID, 
+    // project: process.env.OPENAI_PROJECT_ID, 
 });
 
 export default async function handler(req, res) {
@@ -11,33 +14,19 @@ export default async function handler(req, res) {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const { character, message, bio, vibe } = body;
 
-        const vibeMap = {
-            "Romantic": "Be sweet, caring, and use hearts.",
-            "Naughty": "Be flirty, suggestive, and bold.",
-            "Aggressive": "Be dominant and take charge.",
-            "Angry": "Be cold, mean, and sarcastic."
-        };
-
         const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-4o-mini", // Use 'mini' for better compatibility
             messages: [
-                { 
-                    role: "system", 
-                    content: `You are ${character}. Bio: ${bio}. Mode: ${vibeMap[vibe] || "Friendly"}. Max 2 short sentences.` 
-                },
+                { role: "system", content: `You are ${character}. Bio: ${bio}. Vibe: ${vibe}.` },
                 { role: "user", content: message }
             ],
-            temperature: 0.8
         });
 
-        const reply = response.choices[0].message.content;
-        return res.status(200).json({ reply });
+        return res.status(200).json({ reply: response.choices[0].message.content });
 
     } catch (error) {
-        console.error("API Error:", error);
-        // This tells you exactly what OpenAI said was wrong
-        return res.status(500).json({ 
-            reply: `AI Error: ${error.message}. Check your OpenAI balance!` 
-        });
+        console.error("DEBUG:", error);
+        // This will print the EXACT reason in your Vercel Runtime Logs
+        return res.status(500).json({ reply: `Server says: ${error.message}` });
     }
 }
