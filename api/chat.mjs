@@ -1,52 +1,31 @@
 import { OpenAI } from 'openai';
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export default async function handler(req, res) {
-  // Fix for Vercel/Node: handle potential parsing issues
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
   try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { character, message, bio, vibe } = body;
+    const { character, message, bio, vibe } = req.body;
 
-    // 1. DEFINE THE VIBE INSTRUCTIONS
     const vibeInstructions = {
-      "Romantic": "Be sweet, affectionate, and deeply caring. Use loving language.",
-      "Naughty": "Be extremely flirty, suggestive, and playful. Use double entendres.",
-      "Aggressive": "Be dominant, assertive, and demanding. Take control.",
-      "Angry": "Be cold, short, and easily annoyed. Use sarcasm."
+      "Romantic": "Be sweet, caring, and affectionate.",
+      "Naughty": "Be flirty, bold, and suggestive.",
+      "Aggressive": "Be dominant and take control.",
+      "Angry": "Be cold, mean, and sarcastic."
     };
-
-    // 2. CONSTRUCT THE MASTER SYSTEM PROMPT
-    const systemPrompt = `
-      You are ${character}. 
-      Character Profile: ${bio}.
-      Current Mood/Vibe: ${vibeInstructions[vibe] || "Friendly"}.
-      
-      STRICT RULES:
-      - Stay in character at all times.
-      - Keep responses very short (1-2 sentences) like a text message.
-      - Never mention you are an AI.
-    `;
 
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: `You are ${character}. Bio: ${bio}. Current Mood: ${vibeInstructions[vibe]}. Respond in 1-2 short sentences.` },
         { role: "user", content: message }
       ],
-      temperature: 0.8,
+      temperature: 0.8
     });
 
-    const aiReply = response.choices[0].message.content;
-    res.status(200).json({ reply: aiReply });
-
+    res.status(200).json({ reply: response.choices[0].message.content });
   } catch (error) {
-    console.error("AI Error:", error);
-    // This response is what the Frontend sees if something breaks
-    res.status(500).json({ reply: "I'm having trouble thinking... check your API key in the Vercel dashboard." });
+    res.status(500).json({ reply: "My brain is disconnected... Check your API key!" });
   }
 }
