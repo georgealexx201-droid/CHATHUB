@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: "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",
+  apiKey: process.env.OPENROUTER_KEY, // This looks for your secret variable in Vercel
   defaultHeaders: {
     "HTTP-Referer": "https://chathub-ai.vercel.app", 
     "X-Title": "ChatHub AI",
@@ -10,33 +10,31 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+  if (req.method !== 'POST') return res.status(405).json({ reply: 'Method Not Allowed' });
 
   try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { character, message, bio, vibe } = body;
+    const { character, message, bio, vibe } = req.body;
 
     const vibeMap = {
-      "Romantic": "Affectionate, sweet, and deeply in love.",
-      "Naughty": "Extremely flirty, suggestive, and bold.",
-      "Aggressive": "Dominant, controlling, and assertive.",
-      "Angry": "Cold, sarcastic, and easily annoyed."
+      "Romantic": "Affectionate, sweet, and romantic.",
+      "Naughty": "Extremely flirty and suggestive.",
+      "Aggressive": "Dominant and bold.",
+      "Angry": "Cold and sarcastic."
     };
 
     const completion = await openai.chat.completions.create({
       model: "google/gemini-2.0-flash-001", 
       messages: [
-        { role: "system", content: `You are ${character}. Bio: ${bio}. Mood: ${vibeMap[vibe] || 'Friendly'}. Max 2 sentences.` },
+        { 
+          role: "system", 
+          content: `Roleplay as ${character}. Bio: ${bio}. Vibe: ${vibeMap[vibe] || 'Friendly'}. Max 2 sentences.` 
+        },
         { role: "user", content: message }
       ],
     });
 
     return res.status(200).json({ reply: completion.choices[0].message.content });
   } catch (error) {
-    console.error("OpenRouter Error:", error);
-    // Return the actual error message to the frontend for easier debugging
-    return res.status(error.status || 500).json({ 
-        reply: `Server Error: ${error.message}. (Check your OpenRouter balance!)` 
-    });
+    return res.status(500).json({ reply: error.message });
   }
 }
