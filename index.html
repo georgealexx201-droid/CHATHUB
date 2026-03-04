@@ -3,205 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatHub AI | Connect with AI</title>
+    <title>ChatHub | AI Companions</title>
     <style>
-        :root {
-            --ig-bg: #ffffff;
-            --ig-text: #262626;
-            --ig-secondary: #8e8e8e;
-            --ig-link: #0095f6;
-            --ig-border: #dbdbdb;
-            --ai-bubble: #0095f6;
-            --user-bubble: #efefef;
-        }
+        :root { --pink: #ff2e63; --dark: #08080c; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
+        body { margin: 0; background: var(--dark); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        /* Sidebar/Navigation */
+        nav { width: 80px; height: 100vh; position: fixed; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+        .logo { font-weight: 900; color: var(--pink); margin-bottom: 40px; font-size: 1.5rem; }
+        
+        /* Main View */
+        main { margin-left: 80px; padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding-bottom: 100px; }
+        
+        /* Character Cards */
+        .card { background: var(--glass); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: 0.3s; position: relative; }
+        .card:hover { transform: translateY(-5px); border-color: var(--pink); }
+        .card img { width: 100%; height: 300px; object-fit: cover; }
+        .card-info { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; }
+        
+        /* Chat Overlay */
+        #chat-ui { display: none; position: fixed; inset: 0; background: var(--dark); z-index: 2000; flex-direction: row; }
+        .chat-left { width: 350px; border-right: 1px solid var(--border); padding: 40px; display: flex; flex-direction: column; align-items: center; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        #messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 70%; padding: 12px 20px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; }
+        .ai { background: var(--glass); border: 1px solid var(--border); align-self: flex-start; }
+        .user { background: var(--pink); align-self: flex-end; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #fafafa;
-            color: var(--ig-text);
-            margin: 0; padding: 0; height: 100vh;
-        }
-
-        header {
-            background-color: var(--ig-bg);
-            border-bottom: 1px solid var(--ig-border);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky; top: 0; z-index: 1000;
-        }
-
-        header h1 { font-size: 1.4rem; font-weight: 700; margin: 0; font-style: italic; letter-spacing: -1px; }
-        .back-btn { display: none; background: none; border: none; color: var(--ig-link); font-weight: 600; cursor: pointer; font-size: 1rem; }
-
-        .screen { display: none; flex-direction: column; max-width: 935px; margin: 0 auto; width: 100%; }
-        .active-screen { display: flex; }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 20px;
-        }
-
-        .profile-card {
-            background: white;
-            border: 1px solid var(--ig-border);
-            border-radius: 4px;
-            overflow: hidden;
-            cursor: pointer;
-            text-align: center;
-            transition: opacity 0.2s;
-        }
-
-        .profile-card:hover { opacity: 0.8; }
-        .img-container { width: 100%; padding-top: 100%; position: relative; background: #eee; }
-        .img-container img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; }
-        .profile-info { padding: 10px; }
-        .profile-info h3 { margin: 0; font-size: 0.9rem; font-weight: 600; }
-        .profile-info p { margin: 2px 0 0; font-size: 0.75rem; color: var(--ig-secondary); }
-
-        #chat-interface { height: calc(100vh - 60px); display: flex; justify-content: center; align-items: flex-start; padding-top: 20px; }
-        #chat-container {
-            width: 100%; max-width: 500px; height: 80vh;
-            background: white; border: 1px solid var(--ig-border);
-            border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
-        }
-
-        #chat-header {
-            padding: 15px; border-bottom: 1px solid var(--ig-border);
-            display: flex; align-items: center; gap: 12px;
-        }
-        #chat-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        #chat-header span { font-weight: 600; font-size: 1rem; }
-
-        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 16px; border-radius: 22px; max-width: 75%; font-size: 0.95rem; line-height: 1.4; }
-        .ai { align-self: flex-start; background-color: white; border: 1px solid var(--ig-border); color: var(--ig-text); }
-        .user { align-self: flex-end; background-color: var(--ai-bubble); color: white; }
-
-        #input-area { padding: 15px; border-top: 1px solid var(--ig-border); display: flex; align-items: center; }
-        #userInput { flex: 1; border: none; outline: none; padding: 10px; font-size: 1rem; }
-        #sendBtn { background: none; border: none; color: var(--ig-link); font-weight: 700; cursor: pointer; padding: 0 10px; }
-        #sendBtn:disabled { color: #b2dffc; cursor: default; }
+        /* Input Bar */
+        .input-bar { padding: 25px; display: flex; gap: 10px; background: var(--dark); border-top: 1px solid var(--border); }
+        input { flex: 1; background: var(--glass); border: 1px solid var(--border); border-radius: 30px; padding: 15px 25px; color: white; outline: none; }
+        button { background: var(--pink); border: none; padding: 10px 25px; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; }
+        
+        .close-btn { position: absolute; top: 20px; left: 20px; cursor: pointer; font-size: 1.5rem; z-index: 2100; }
     </style>
 </head>
 <body>
 
-<header>
-    <button class="back-btn" id="backBtn" onclick="showGrid()">← Back</button>
-    <h1>ChatHub AI</h1>
-    <div style="width: 40px;"></div>
-</header>
+<nav><div class="logo">C</div></nav>
 
-<div id="grid-screen" class="screen active-screen">
-    <div class="grid-container" id="gridContainer"></div>
-</div>
+<main>
+    <h1 id="view-title">My AI Companions</h1>
+    <div class="grid" id="character-grid"></div>
+</main>
 
-<div id="chat-screen" class="screen">
-    <div id="chat-interface">
-        <div id="chat-container">
-            <div id="chat-header">
-                <img src="" id="chatPic">
-                <span id="chatName"></span>
-            </div>
-            <div id="messages"></div>
-            <div id="input-area">
-                <input type="text" id="userInput" placeholder="Message...">
-                <button id="sendBtn" onclick="sendMessage()">Send</button>
-            </div>
+<div id="chat-ui">
+    <div class="close-btn" onclick="closeChat()">✕</div>
+    <div class="chat-left">
+        <img id="char-img" style="width: 100%; border-radius: 20px;">
+        <h2 id="char-name"></h2>
+        <p id="char-bio" style="color: #888; text-align: center;"></p>
+        <select id="vibe-selector" style="background: #111; color: var(--pink); border: 1px solid var(--pink); padding: 10px; border-radius: 10px; width: 100%;">
+            <option value="Sweet">Sweet & Bubbly</option>
+            <option value="Flirty">Flirty & Naughty</option>
+            <option value="Cold">Cold & Distant</option>
+        </select>
+    </div>
+    <div class="chat-main">
+        <div id="messages"></div>
+        <div class="input-bar">
+            <input type="text" id="userInput" placeholder="Type a message...">
+            <button onclick="send()">Send</button>
         </div>
     </div>
 </div>
 
 <script>
-    const characters = [
-        { id: 1, name: "Sakura 🌸", role: "Artist", bio: "You are Sakura, a bubbly artist. Use emojis and be super friendly.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sakura" },
-        { id: 2, name: "Luna 🎮", role: "Pro Gamer", bio: "You are Luna, a competitive gamer. You're a bit sarcastic but cool.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" },
-        { id: 3, name: "Elena 📚", role: "Poet", bio: "You are Elena, a mysterious girl who loves deep conversations and books.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena" },
-        { id: 4, name: "Chloe 🏄‍♀️", role: "Surfer", bio: "You are Chloe, a chill surfer girl from Cali. Use words like 'dude' and 'totally'.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Chloe" },
-        { id: 5, name: "Mina 🎤", role: "Pop Star", bio: "You are Mina, a famous K-Pop idol. You are polite, hard-working, and sweet.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mina" },
-        { id: 6, name: "Jade 💻", role: "Hacker", bio: "You are Jade, a tech genius. You talk in tech slang and are very smart.", photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jade" }
+    const companions = [
+        { id: 1, name: "Sakura 🌸", role: "Artist", bio: "A free-spirited painter who sees the world in colors.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sakura" },
+        { id: 2, name: "Luna 🎮", role: "Gamer", bio: "Pro gamer. Competitive, sharp, and very playful.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" },
+        { id: 3, name: "Jade 💻", role: "Hacker", bio: "Mysterious tech genius who knows all your secrets.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jade" }
     ];
 
-    let currentAi = null;
+    let activeChar = null;
 
-    function initGrid() {
-        const container = document.getElementById('gridContainer');
-        container.innerHTML = characters.map(char => `
-            <div class="profile-card" onclick="openChat(${char.id})">
-                <div class="img-container"><img src="${char.photo}"></div>
-                <div class="profile-info">
-                    <h3>${char.name}</h3>
-                    <p>${char.role}</p>
+    function render() {
+        document.getElementById('character-grid').innerHTML = companions.map(c => `
+            <div class="card" onclick="startChat(${c.id})">
+                <img src="${c.img}">
+                <div class="card-info">
+                    <b>${c.name}</b><br><small>${c.role}</small>
                 </div>
             </div>
         `).join('');
     }
 
-    function openChat(id) {
-        currentAi = characters.find(c => c.id === id);
-        document.getElementById('chatPic').src = currentAi.photo;
-        document.getElementById('chatName').textContent = currentAi.name;
-        document.getElementById('messages').innerHTML = `<div class="msg ai">Hey! I'm ${currentAi.name}. Glad you've reached out! ✨</div>`;
-        document.getElementById('grid-screen').classList.remove('active-screen');
-        document.getElementById('chat-screen').classList.add('active-screen');
-        document.getElementById('backBtn').style.display = 'block';
+    function startChat(id) {
+        activeChar = companions.find(c => c.id === id);
+        document.getElementById('char-img').src = activeChar.img;
+        document.getElementById('char-name').innerText = activeChar.name;
+        document.getElementById('char-bio').innerText = activeChar.bio;
+        document.getElementById('chat-ui').style.display = 'flex';
+        document.getElementById('messages').innerHTML = `<div class="msg ai">Hey there! It's ${activeChar.name}. How are you today?</div>`;
     }
 
-    function showGrid() {
-        document.getElementById('grid-screen').classList.add('active-screen');
-        document.getElementById('chat-screen').classList.remove('active-screen');
-        document.getElementById('backBtn').style.display = 'none';
-    }
+    function closeChat() { document.getElementById('chat-ui').style.display = 'none'; }
 
-    async function sendMessage() {
+    async function send() {
         const input = document.getElementById('userInput');
-        const btn = document.getElementById('sendBtn');
-        const msgDiv = document.getElementById('messages');
         const text = input.value.trim();
+        const vibe = document.getElementById('vibe-selector').value;
+        if (!text) return;
 
-        if (!text || btn.disabled) return;
-
-        msgDiv.innerHTML += `<div class="msg user">${text}</div>`;
+        const msgBox = document.getElementById('messages');
+        msgBox.innerHTML += `<div class="msg user">${text}</div>`;
         input.value = '';
-        btn.disabled = true;
-        msgDiv.scrollTop = msgDiv.scrollHeight;
+        msgBox.scrollTop = msgBox.scrollHeight;
 
         try {
-            // Updated to fetch from our serverless function
-            const response = await fetch("/api/chat", {
+            const res = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     messages: [
-                        { "role": "system", "content": currentAi.bio },
-                        { "role": "user", "content": text }
+                        { role: "system", content: `You are ${activeChar.name}. Bio: ${activeChar.bio}. Current Mood: ${vibe}. Keep responses short and immersive.` },
+                        { role: "user", content: text }
                     ]
                 })
             });
-
-            const data = await response.json();
-            if (data.error) {
-                msgDiv.innerHTML += `<div class="msg ai">Error: ${data.error}</div>`;
-            } else {
-                const reply = data.choices[0].message.content;
-                msgDiv.innerHTML += `<div class="msg ai">${reply}</div>`;
-            }
-        } catch (err) {
-            msgDiv.innerHTML += `<div class="msg ai">Connection lost. Try again!</div>`;
-        } finally {
-            btn.disabled = false;
-            msgDiv.scrollTop = msgDiv.scrollHeight;
+            const data = await res.json();
+            msgBox.innerHTML += `<div class="msg ai">${data.choices[0].message.content}</div>`;
+        } catch (e) {
+            msgBox.innerHTML += `<div class="msg ai">System Error: Check your OpenRouter key and credits!</div>`;
         }
+        msgBox.scrollTop = msgBox.scrollHeight;
     }
-
-    document.getElementById('userInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
-
-    initGrid();
+    
+    render();
 </script>
 </body>
 </html>
