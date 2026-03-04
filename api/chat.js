@@ -1,15 +1,12 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method not allowed' });
+    }
 
     try {
+        // We now pull 'history' out of the request from your website
         const { character, bio, message, history } = JSON.parse(req.body);
-
-        // We combine the bio, the old messages, and the new message
-        const messages = [
-            { "role": "system", "content": `You are ${character}. ${bio}` },
-            ...history, // This adds the previous conversation
-            { "role": "user", "content": message }
-        ];
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -19,14 +16,23 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 "model": "google/gemini-2.0-flash-001",
-                "messages": messages
+                "messages": [
+                    { "role": "system", "content": `You are ${character}. ${bio}` },
+                    ...history, // This inserts all previous messages into the conversation
+                    { "role": "user", "content": message }
+                ]
             })
         });
 
         const data = await response.json();
+
+        if (data.error) {
+            return res.status(500).json({ error: data.error.message });
+        }
+
         res.status(200).json({ reply: data.choices[0].message.content });
 
     } catch (err) {
-        res.status(500).json({ error: "Server error" });
+        res.status(500).json({ error: "Server error: " + err.message });
     }
 }
