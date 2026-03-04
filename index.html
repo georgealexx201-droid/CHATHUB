@@ -47,14 +47,32 @@
 </div>
 
 <script>
-    const characters = [
-        { id: 1, name: "Sakura 🌸", bio: "22yo Tokyo artist. Friendly and creative.", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=500" },
-        { id: 2, name: "Luna 🎮", bio: "Gamer girl. Sarcastic but chill.", photo: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=500" },
-        { id: 3, name: "Elena 📚", bio: "Quiet writer. Loves deep philosophy.", photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=500" }
+const characters = [
+        { 
+            id: 1, 
+            name: "Sakura 🌸", 
+            bio: "22yo Tokyo artist. Friendly, loves anime and digital art.", 
+            greeting: "Hey! I just finished a new sketch. What do you think of digital art?",
+            photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=500" 
+        },
+        { 
+            id: 2, 
+            name: "Luna 🎮", 
+            bio: "Pro Gamer. Sarcastic, loves RPGs and late-night streams.", 
+            greeting: "Ugh, my team just threw the match. Please tell me you're better at games than they are.",
+            photo: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=500" 
+        },
+        { 
+            id: 3, 
+            name: "Elena 📚", 
+            bio: "Intellectual Writer. Enjoys poetry, rain, and deep philosophy.", 
+            greeting: "I was just reading some Rumi. Do you believe we are all just stars wrapped in skin?",
+            photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=500" 
+        }
     ];
 
     let currentAi = null;
-    let chatHistory = []; // IMPORTANT: This stays OUTSIDE the function to keep memory!
+    let chatHistory = [];
 
     function init() {
         document.getElementById('gridContainer').innerHTML = characters.map(c => `
@@ -66,11 +84,13 @@
 
     function startChat(id) {
         currentAi = characters.find(c => c.id === id);
-        chatHistory = []; // Reset memory for a fresh start with a new character
+        chatHistory = []; 
         document.getElementById('grid-screen').classList.remove('active-screen');
         document.getElementById('chat-screen').classList.add('active-screen');
         document.getElementById('backBtn').style.display = "block";
-        document.getElementById('messages').innerHTML = `<div class="msg ai">Hi! I'm ${currentAi.name}. Tell me something about yourself!</div>`;
+        
+        // Use the unique greeting!
+        document.getElementById('messages').innerHTML = `<div class="msg ai">${currentAi.greeting}</div>`;
     }
 
     async function sendMessage() {
@@ -79,12 +99,17 @@
         if(!text) return;
 
         const msgDiv = document.getElementById('messages');
+        
+        // 1. Add User Message
         msgDiv.innerHTML += `<div class="msg user">${text}</div>`;
         input.value = '';
+        
+        // 2. Add "Typing..." Indicator
+        const typingId = "typing-" + Date.now();
+        msgDiv.innerHTML += `<div class="msg ai" id="${typingId}"><i>${currentAi.name} is typing...</i></div>`;
         msgDiv.scrollTop = msgDiv.scrollHeight;
 
         try {
-            // Note the new .mjs extension here:
             const response = await fetch("/api/chat.mjs", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -98,19 +123,21 @@
             
             const data = await response.json();
             
+            // 3. Remove Typing Indicator and Add Real Reply
+            document.getElementById(typingId).remove();
+
             if(data.reply) {
                 msgDiv.innerHTML += `<div class="msg ai">${data.reply}</div>`;
-                // UPDATE MEMORY
                 chatHistory.push({ role: "user", content: text });
                 chatHistory.push({ role: "assistant", content: data.reply });
             }
         } catch (e) {
-            msgDiv.innerHTML += `<div class="msg ai">System lag. Try again!</div>`;
+            document.getElementById(typingId).innerHTML = "System lag. Try again!";
         }
         msgDiv.scrollTop = msgDiv.scrollHeight;
     }
 
-    init();
+    init() ;
 </script>
 </body>
 </html>
