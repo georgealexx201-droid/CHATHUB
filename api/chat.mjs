@@ -1,34 +1,32 @@
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Wrong method' });
+  if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-    // --- YOUR NEW KEY APPLIED ---
-    const KEY = "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"; 
+  try {
+    const { character, message, bio, vibe } = JSON.parse(req.body);
 
-    try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${KEY}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://chathub-ai-candy.vercel.app", 
-                "X-Title": "Candy AI Clone"
-            },
-            body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001",
-                messages: req.body.messages
-            })
-        });
+    const vibeMap = {
+      "Romantic": "Affectionate, sweet, and deeply in love.",
+      "Naughty": "Extremely flirty, suggestive, and bold.",
+      "Aggressive": "Dominant, controlling, and assertive.",
+      "Angry": "Cold, sarcastic, and easily annoyed."
+    };
 
-        const data = await response.json();
-        
-        if (data.error) {
-            console.error("OpenRouter Error Details:", data.error);
-            return res.status(500).json({ error: data.error.message });
-        }
-        
-        return res.status(200).json(data);
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: `You are ${character}. Bio: ${bio}. Current Mood: ${vibeMap[vibe] || 'Friendly'}. Keep responses to 2 sentences max.` },
+        { role: "user", content: message }
+      ],
+    });
 
-    } catch (err) {
-        return res.status(500).json({ error: "Server failed to connect to OpenRouter." });
-    }
+    return res.status(200).json({ reply: completion.choices[0].message.content });
+  } catch (error) {
+    return res.status(500).json({ reply: "My circuits are fried... check your API key!" });
+  }
 }
