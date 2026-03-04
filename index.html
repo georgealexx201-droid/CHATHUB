@@ -3,100 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatHub | AI Companions</title>
+    <title>CandyHub AI | Your Virtual Companions</title>
     <style>
-        :root { --pink: #ff2e63; --dark: #08080c; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
-        body { margin: 0; background: var(--dark); color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        :root { --accent: #ff2e63; --bg: #0a0a0c; --card: #16161a; --border: rgba(255,255,255,0.1); }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
         
-        /* Sidebar/Navigation */
-        nav { width: 80px; height: 100vh; position: fixed; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
-        .logo { font-weight: 900; color: var(--pink); margin-bottom: 40px; font-size: 1.5rem; }
+        /* Layout */
+        header { padding: 20px 40px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
         
-        /* Main View */
-        main { margin-left: 80px; padding: 20px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding-bottom: 100px; }
+        main { padding: 40px; max-width: 1200px; margin: 0 auto; }
+        .hero { text-align: center; margin-bottom: 50px; }
         
-        /* Character Cards */
-        .card { background: var(--glass); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: 0.3s; position: relative; }
-        .card:hover { transform: translateY(-5px); border-color: var(--pink); }
-        .card img { width: 100%; height: 300px; object-fit: cover; }
-        .card-info { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; }
+        /* Character Grid */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; }
+        .card { background: var(--card); border-radius: 24px; overflow: hidden; border: 1px solid var(--border); cursor: pointer; transition: 0.3s; position: relative; }
+        .card:hover { border-color: var(--accent); transform: translateY(-8px); box-shadow: 0 10px 30px rgba(255,46,99,0.2); }
+        .card img { width: 100%; height: 350px; object-fit: cover; }
+        .card-meta { padding: 20px; background: linear-gradient(transparent, #000); position: absolute; bottom: 0; width: 100%; box-sizing: border-box; }
         
         /* Chat Overlay */
-        #chat-ui { display: none; position: fixed; inset: 0; background: var(--dark); z-index: 2000; flex-direction: row; }
-        .chat-left { width: 350px; border-right: 1px solid var(--border); padding: 40px; display: flex; flex-direction: column; align-items: center; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        #chat-ui { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9999; flex-direction: row; }
+        .chat-sidebar { width: 350px; border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: #0f0f12; }
         
         #messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 70%; padding: 12px 20px; border-radius: 20px; font-size: 0.95rem; line-height: 1.5; }
-        .ai { background: var(--glass); border: 1px solid var(--border); align-self: flex-start; }
-        .user { background: var(--pink); align-self: flex-end; }
+        .msg { max-width: 75%; padding: 14px 20px; border-radius: 20px; font-size: 0.95rem; }
+        .ai { background: var(--card); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 4px; }
 
-        /* Input Bar */
-        .input-bar { padding: 25px; display: flex; gap: 10px; background: var(--dark); border-top: 1px solid var(--border); }
-        input { flex: 1; background: var(--glass); border: 1px solid var(--border); border-radius: 30px; padding: 15px 25px; color: white; outline: none; }
-        button { background: var(--pink); border: none; padding: 10px 25px; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; }
+        .input-area { padding: 30px; border-top: 1px solid var(--border); display: flex; gap: 12px; }
+        input { flex: 1; background: #1c1c21; border: 1px solid var(--border); border-radius: 15px; padding: 15px; color: white; outline: none; }
+        .send-btn { background: var(--accent); border: none; padding: 0 25px; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; }
         
-        .close-btn { position: absolute; top: 20px; left: 20px; cursor: pointer; font-size: 1.5rem; z-index: 2100; }
+        .close-btn { position: absolute; top: 20px; right: 20px; color: white; font-size: 2rem; cursor: pointer; opacity: 0.5; }
+        .close-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
-<nav><div class="logo">C</div></nav>
+<header>
+    <div class="logo">CANDYHUB.AI</div>
+</header>
 
 <main>
-    <h1 id="view-title">My AI Companions</h1>
+    <div class="hero">
+        <h1>Find Your AI Companion</h1>
+        <p style="color: #888;">Immersive conversations with characters that remember you.</p>
+    </div>
     <div class="grid" id="character-grid"></div>
 </main>
 
 <div id="chat-ui">
-    <div class="close-btn" onclick="closeChat()">✕</div>
-    <div class="chat-left">
-        <img id="char-img" style="width: 100%; border-radius: 20px;">
-        <h2 id="char-name"></h2>
-        <p id="char-bio" style="color: #888; text-align: center;"></p>
-        <select id="vibe-selector" style="background: #111; color: var(--pink); border: 1px solid var(--pink); padding: 10px; border-radius: 10px; width: 100%;">
-            <option value="Sweet">Sweet & Bubbly</option>
-            <option value="Flirty">Flirty & Naughty</option>
-            <option value="Cold">Cold & Distant</option>
-        </select>
+    <div class="close-btn" onclick="closeChat()">×</div>
+    <div class="chat-sidebar">
+        <img id="side-img" style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent);">
+        <h2 id="side-name" style="margin-top: 20px;"></h2>
+        <p id="side-bio" style="color: #888; text-align: center; font-size: 0.9rem;"></p>
+        <div style="margin-top: auto; width: 100%;">
+            <label style="font-size: 0.7rem; color: var(--accent); font-weight: bold;">CHARACTER MOOD</label>
+            <select id="vibe" style="width: 100%; background: #111; color: white; border: 1px solid var(--border); padding: 12px; border-radius: 10px; margin-top: 5px;">
+                <option value="Loving">🥰 Loving & Sweet</option>
+                <option value="Spicy">🔥 Spicy & Bold</option>
+                <option value="Shy">😳 Shy & Quiet</option>
+            </select>
+        </div>
     </div>
     <div class="chat-main">
         <div id="messages"></div>
-        <div class="input-bar">
-            <input type="text" id="userInput" placeholder="Type a message...">
-            <button onclick="send()">Send</button>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Send a message...">
+            <button class="send-btn" onclick="send()">Send</button>
         </div>
     </div>
 </div>
 
 <script>
     const companions = [
-        { id: 1, name: "Sakura 🌸", role: "Artist", bio: "A free-spirited painter who sees the world in colors.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sakura" },
-        { id: 2, name: "Luna 🎮", role: "Gamer", bio: "Pro gamer. Competitive, sharp, and very playful.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" },
-        { id: 3, name: "Jade 💻", role: "Hacker", bio: "Mysterious tech genius who knows all your secrets.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jade" }
+        { id: 1, name: "Sakura", bio: "A bubbly art student with a secret crush on you.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sakura" },
+        { id: 2, name: "Luna", bio: "The world's top gamer. She's competitive but has a soft side.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" },
+        { id: 3, name: "Elena", bio: "A mysterious librarian who speaks in riddles and poetry.", img: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena" }
     ];
 
-    let activeChar = null;
+    let current = null;
 
-    function render() {
+    function init() {
         document.getElementById('character-grid').innerHTML = companions.map(c => `
-            <div class="card" onclick="startChat(${c.id})">
+            <div class="card" onclick="openChat(${c.id})">
                 <img src="${c.img}">
-                <div class="card-info">
-                    <b>${c.name}</b><br><small>${c.role}</small>
+                <div class="card-meta">
+                    <div style="font-size: 1.2rem; font-weight: bold;">${c.name}</div>
+                    <div style="font-size: 0.8rem; opacity: 0.7;">Online Now</div>
                 </div>
             </div>
         `).join('');
     }
 
-    function startChat(id) {
-        activeChar = companions.find(c => c.id === id);
-        document.getElementById('char-img').src = activeChar.img;
-        document.getElementById('char-name').innerText = activeChar.name;
-        document.getElementById('char-bio').innerText = activeChar.bio;
+    function openChat(id) {
+        current = companions.find(c => c.id === id);
+        document.getElementById('side-img').src = current.img;
+        document.getElementById('side-name').innerText = current.name;
+        document.getElementById('side-bio').innerText = current.bio;
         document.getElementById('chat-ui').style.display = 'flex';
-        document.getElementById('messages').innerHTML = `<div class="msg ai">Hey there! It's ${activeChar.name}. How are you today?</div>`;
+        document.getElementById('messages').innerHTML = `<div class="msg ai">Hey! It's ${current.name}. I've been waiting to talk to you...</div>`;
     }
 
     function closeChat() { document.getElementById('chat-ui').style.display = 'none'; }
@@ -104,13 +113,13 @@
     async function send() {
         const input = document.getElementById('userInput');
         const text = input.value.trim();
-        const vibe = document.getElementById('vibe-selector').value;
+        const mood = document.getElementById('vibe').value;
         if (!text) return;
 
-        const msgBox = document.getElementById('messages');
-        msgBox.innerHTML += `<div class="msg user">${text}</div>`;
+        const box = document.getElementById('messages');
+        box.innerHTML += `<div class="msg user">${text}</div>`;
         input.value = '';
-        msgBox.scrollTop = msgBox.scrollHeight;
+        box.scrollTop = box.scrollHeight;
 
         try {
             const res = await fetch("/api/chat", {
@@ -118,20 +127,21 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     messages: [
-                        { role: "system", content: `You are ${activeChar.name}. Bio: ${activeChar.bio}. Current Mood: ${vibe}. Keep responses short and immersive.` },
+                        { role: "system", content: `You are ${current.name}. Bio: ${current.bio}. Mood: ${mood}. Reply in character with short, engaging messages.` },
                         { role: "user", content: text }
                     ]
                 })
             });
             const data = await res.json();
-            msgBox.innerHTML += `<div class="msg ai">${data.choices[0].message.content}</div>`;
+            box.innerHTML += `<div class="msg ai">${data.choices[0].message.content}</div>`;
         } catch (e) {
-            msgBox.innerHTML += `<div class="msg ai">System Error: Check your OpenRouter key and credits!</div>`;
+            box.innerHTML += `<div class="msg ai">I'm having trouble connecting... check your key!</div>`;
         }
-        msgBox.scrollTop = msgBox.scrollHeight;
+        box.scrollTop = box.scrollHeight;
     }
-    
-    render();
+
+    document.getElementById('userInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
+    init();
 </script>
 </body>
 </html>
