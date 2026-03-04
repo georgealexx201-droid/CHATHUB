@@ -225,7 +225,7 @@
         }
     }
 
-    // MAIN SEND LOGIC WITH FALLBACK
+    // MAIN SEND LOGIC - FIXED FOR SERVER AND FALLBACK
     async function send() {
         const input = document.getElementById('userInput');
         const text = input.value.trim();
@@ -242,20 +242,27 @@
         box.scrollTop = box.scrollHeight;
 
         try {
-            const res = await fetch("/api/chat.mjs", { 
+            // Updated Path for Vercel standard deployment
+            const res = await fetch("/api/chat", { 
                 method: "POST", 
                 body: JSON.stringify({ character: current.name, message: text, bio: current.bio, vibe: currentVibe }) 
             });
-            if(!res.ok) throw new Error();
+            
+            if(!res.ok) throw new Error("API Offline");
+            
             const data = await res.json();
             handleReply(data.reply, tid);
         } catch (e) {
-            // Test Mode Fallback if server is not active
+            // Realistic Fallback so it doesn't just show a boring error
             setTimeout(() => {
-                let fallback = `[${currentVibe} Mode] I'm listening, but my brain isn't connected to the server yet! Put me on Vercel to make me real.`;
-                if(currentVibe === "Naughty") fallback = "You're bold... I like that. But I can't reply properly until you connect my API key.";
-                handleReply(fallback, tid);
-            }, 1000);
+                let reply = "";
+                if(currentVibe === "Naughty") reply = "You're being so bold... I love it. But my brain isn't fully connected to the server yet. Host me on Vercel to see what I can really do!";
+                else if(currentVibe === "Angry") reply = "I'm really not in the mood for games. Connect my API key or leave me alone!";
+                else if(currentVibe === "Aggressive") reply = "I like it when you're this direct. Too bad I'm currently in test mode. Make me real!";
+                else reply = "That's so sweet. I'm just a demo right now, but soon I'll be able to tell you everything.";
+                
+                handleReply(reply, tid);
+            }, 1200);
         }
     }
 
