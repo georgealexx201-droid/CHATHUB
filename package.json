@@ -1,10 +1,6 @@
 {
-  "name": "chathub-ai-final",
+  "name": "chathub-ai",
   "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "openai": "^4.28.0"
-  },
   "engines": {
     "node": "24.x"
   }
