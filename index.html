@@ -260,22 +260,48 @@
     /* ========================================= */
     /* CHAT LOGIC: Placeholder response */
     /* ========================================= */
-    function sendMessage() {
+    async function sendMessage() {
         const input = document.getElementById('userInput');
+        const msgDiv = document.getElementById('messages');
         const text = input.value.trim();
+        
         if (!text || !currentAi) return;
 
-        // Show User Message
+        // 1. Show User Message
         msgDiv.innerHTML += `<div class="msg user">${text}</div>`;
         input.value = '';
-        msgDiv.scrollTop = msgDiv.scrollHeight; // Auto-scroll
+        msgDiv.scrollTop = msgDiv.scrollHeight;
 
-        // --- PLACEHOLDER RESPONSE ---
-        // We will connect the real API Brain in the NEXT step.
-        setTimeout(() => {
-            msgDiv.innerHTML += `<div class="msg ai">I am ${currentAi.name}. I received your message: "${text}". Connect my API key to get a real reply!</div>`;
+        // 2. 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
+        const MY_API_KEY = "PASTE_YOUR_OPENROUTER_KEY_HERE"; 
+
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${MY_API_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "model": "google/gemini-2.0-flash-lite-preview-02-05:free", // Using a fast, free model
+                    "messages": [
+                        {"role": "system", "content": `You are ${currentAi.name}, a ${currentAi.type}. Your personality: ${currentAi.bio}. Stay in character and be friendly.`},
+                        {"role": "user", "content": text}
+                    ]
+                })
+            });
+
+            const data = await response.json();
+            const aiResponse = data.choices[0].message.content;
+
+            // 3. Show AI Message
+            msgDiv.innerHTML += `<div class="msg ai">${aiResponse}</div>`;
             msgDiv.scrollTop = msgDiv.scrollHeight;
-        }, 1200);
+
+        } catch (error) {
+            console.error("Error:", error);
+            msgDiv.innerHTML += `<div class="msg ai">Oops! Something went wrong with my brain. Check the console.</div>`;
+        }
     }
 
     // Allow 'Enter' key to send
