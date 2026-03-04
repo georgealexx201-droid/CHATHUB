@@ -1,36 +1,40 @@
-import { OpenAI } from 'openai';
-
-// This setup is more stable for Node 24 on Vercel
-const openai = new OpenAI({ 
-    apiKey: process.env.OPENAI_API_KEY,
-    // If you have a Project ID in your OpenAI dashboard, add it to Vercel and uncomment below:
-    // project: process.env.OPENAI_PROJECT_ID 
-});
-
 export default async function handler(req, res) {
-    // Basic security check
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
+    const { messages } = req.body;
+
+    // --- CONFIGURATION ---
+    // Move your key here so it's hidden from the public!
+    const MY_API_KEY = "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"; 
+    const AI_MODEL = "google/gemini-2.0-flash-001";
 
     try {
-        const { character, message, bio, vibe } = req.body;
-
-        const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini", // Most stable for 2026
-            messages: [
-                { role: "system", content: `You are ${character}. Bio: ${bio}. Vibe: ${vibe}. Max 2 sentences.` },
-                { role: "user", content: message }
-            ],
-            // Adding a timeout helps prevent "silent" connection hangs
-            timeout: 15000 
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${MY_API_KEY}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://chathub-ai.vercel.app", // Optional for OpenRouter
+                "X-Title": "ChatHub AI"
+            },
+            body: JSON.stringify({
+                model: AI_MODEL,
+                messages: messages,
+            })
         });
 
-        return res.status(200).json({ reply: response.choices[0].message.content });
+        const data = await response.json();
+        
+        if (data.error) {
+            return res.status(500).json({ error: data.error.message });
+        }
 
-    } catch (error) {
-        // This sends the EXACT error back to your chat screen so we can see it
-        console.error("OpenAI Error:", error);
-        return res.status(500).json({ 
-            reply: `Server says: ${error.message || 'Unknown Connection Error'}` 
-        });
+        return res.status(200).json(data);
+
+    } catch (err) {
+        return res.status(500).json({ error: "Connection to AI failed." });
     }
 }
