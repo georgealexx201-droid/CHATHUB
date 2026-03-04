@@ -71,26 +71,61 @@
 <body>
 
 <header>
-    <div class="logo">CHATHUB.AI</div>
-</header>
-
-<div id="grid-screen" class="active-screen">
-    <div class="grid-container" id="gridContainer"></div>
+    <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterChars('all')">All</button>
+    <button class="filter-btn" onclick="filterChars('Creative')">Creative</button>
+    <button class="filter-btn" onclick="filterChars('Gaming')">Gaming</button>
+    <button class="filter-btn" onclick="filterChars('Professional')">Professional</button>
 </div>
 
-<div id="chat-screen">
-    <div id="chat-header">
-        <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:1.5rem;">←</button>
-        <div id="header-name" style="font-weight:bold;"></div>
-    </div>
-    <div id="messages"></div>
-    <div id="input-area">
-        <input type="text" id="userInput" placeholder="Type a message...">
-        <button onclick="sendMessage()" style="background:var(--accent); border:none; color:white; padding:10px 20px; border-radius:25px; font-weight:bold;">Send</button>
-    </div>
-</div>
+<style>
+    .filter-bar { display: flex; gap: 10px; padding: 10px 20px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid var(--border); }
+    .filter-btn { background: var(--card-bg); border: 1px solid var(--border); color: white; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); }
+</style>
 
 <script>
+    const characters = [
+        { id: 1, name: "Sakura 🌸", category: "Creative", bio: "22yo Tokyo artist.", greeting: "Hey! Want to see my latest sketch?", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500", online: true },
+        { id: 2, name: "Luna 🎮", category: "Gaming", bio: "Pro Gamer. Sarcastic.", greeting: "Ready for a round of ranked?", photo: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500", online: true },
+        { id: 3, name: "Elena 📚", category: "Creative", bio: "Writer and Poet.", greeting: "Have you read any good books lately?", photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500", online: false },
+        { id: 4, name: "Coach Jax 🏋️", category: "Professional", bio: "Fitness Expert.", greeting: "Time to hit those goals! Ready?", photo: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500", online: true },
+        { id: 5, name: "Chef Marco 👨‍🍳", category: "Professional", bio: "Michelin Star Chef.", greeting: "The secret is in the sauce. What are we cooking?", photo: "https://images.unsplash.com/photo-1583394238182-6f3ad36b51a0?w=500", online: true },
+        { id: 6, name: "Aria 🎵", category: "Creative", bio: "Lo-fi Producer.", greeting: "Just dropped a new beat. Vibe with me?", photo: "https://images.unsplash.com/photo-1514846226882-28b324ef7f28?w=500", online: false }
+    ];
+
+    let currentAi = null;
+    let chatHistory = [];
+
+    function init(data = characters) {
+        document.getElementById('gridContainer').innerHTML = data.map(c => `
+            <div class="profile-card" onclick="startChat(${c.id})">
+                <div class="badge" style="background:${c.online ? '#00ff88' : '#555'}">${c.online ? 'Online' : 'Away'}</div>
+                <div class="img-container"><img src="${c.photo}"></div>
+                <div class="card-info">
+                    <h3>${c.name}</h3>
+                    <p>${c.category}</p>
+                </div>
+            </div>`).join('');
+    }
+
+    function filterChars(cat) {
+        // Update button UI
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText === cat || (cat === 'all' && btn.innerText === 'All'));
+        });
+
+        if (cat === 'all') {
+            init(characters);
+        } else {
+            const filtered = characters.filter(c => c.category === cat);
+            init(filtered);
+        }
+    }
+
+    // ... (Keep your existing startChat, closeChat, and sendMessage functions) ...
+    init();
+</script>
     const characters = [
         { id: 1, name: "Sakura 🌸", bio: "Artist", badge: "Online", photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500", greeting: "Hey! I'm working on a new painting. Want to see?" },
         { id: 2, name: "Luna 🎮", bio: "Gamer", badge: "Popular", photo: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500", greeting: "Just finished a 12-hour stream. I'm exhausted but wired. You up?" },
