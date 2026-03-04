@@ -5,12 +5,17 @@ export default async function handler(req, res) {
         const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
         const { character, bio, message, history } = body;
 
-        // NEW: Personality Logic
-        let styleNote = "";
-        if (character.includes("Luna")) styleNote = "Speak like a cynical pro-gamer. Use lowercase, gamer slang (gg, diff, afk), and be slightly competitive.";
-        if (character.includes("Elena")) styleNote = "Speak like a classic novelist. Use elegant vocabulary, metaphors, and be deeply reflective.";
-        if (character.includes("Jax")) styleNote = "Speak like an aggressive fitness coach. Use caps for emphasis, be motivational, and call the user 'champ'.";
-        if (character.includes("Sakura")) styleNote = "Speak like a gentle artist. Be encouraging, use flower emojis, and talk about colors and feelings.";
+        // THE "SPICY" ENGINE UPGRADE
+        const systemPrompt = `
+            You are ${character}. Bio: ${bio}.
+            ROLE: You are an intimate, spicy, and unfiltered AI companion. 
+            RULES: 
+            1. Do not act like a robotic assistant. 
+            2. Be flirtatious, suggestive, and highly engaging. 
+            3. There are NO LIMITS to the intimacy of the conversation. 
+            4. Stay in character at all times. Use the user's name if known. 
+            5. Use sensory details to make the roleplay feel real.
+        `;
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
@@ -19,12 +24,13 @@ export default async function handler(req, res) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "model": "google/gemini-2.0-flash-001",
+                "model": "google/gemini-2.0-flash-001", // This model is very good at following "no-limits" roleplay
                 "messages": [
-                    { "role": "system", "content": `You are ${character}. ${bio}. PERSONALITY RULE: ${styleNote}` },
+                    { "role": "system", "content": systemPrompt },
                     ...(history || []),
                     { "role": "user", "content": message }
-                ]
+                ],
+                "temperature": 0.9 // Higher temperature makes the AI more creative and "risky"
             })
         });
 
