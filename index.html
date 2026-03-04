@@ -1,59 +1,292 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Character Chat</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Persona Hub</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; }
-        #chat-box { width: 400px; height: 500px; border: 1px solid #444; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #222; }
-        .message { margin: 5px; padding: 8px; border-radius: 5px; }
-        .user { background: #007bff; align-self: flex-end; }
-        .ai { background: #444; }
-        input { width: 320px; padding: 10px; }
-        button { padding: 10px; cursor: pointer; }
+        /* --- General Reset --- */
+        :root {
+            --bg-color: #FAFAFA; /* Light IG background */
+            --header-bg: #FFFFFF;
+            --text-main: #262626;
+            --text-secondary: #8E8E8E;
+            --primary-accent: #0095F6; /* IG Blue */
+            --bubble-user: #EFEFEF;
+            --bubble-ai: #0095F6;
+        }
+
+        [data-theme="dark"] { /* Future-proofing: Dark Mode */
+            --bg-color: #000000;
+            --header-bg: #121212;
+            --text-main: #F5F5F5;
+            --text-secondary: #A8A8A8;
+            --bubble-user: #262626;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--header-bg);
+            border-bottom: 1px solid #DBDBDB;
+            padding: 10px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 { margin: 0; font-size: 1.5rem; font-weight: 600; font-style: italic; }
+        .back-btn { display: none; background: none; border: none; color: var(--primary-accent); font-weight: bold; cursor: pointer; }
+
+        /* --- SCREENS --- */
+        .screen { display: none; flex: 1; flex-direction: column; }
+        .active-screen { display: flex; }
+
+        /* ============================ */
+        /* PROFILE GRID SCREEN CSS */
+        /* ============================ */
+        #profile-grid {
+            padding: 20px;
+            max-width: 935px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .section-header { margin-bottom: 20px; font-weight: 600; color: var(--text-secondary); }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns like IG */
+            gap: 15px;
+        }
+
+        .profile-card {
+            background: var(--header-bg);
+            border: 1px solid #DBDBDB;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+
+        .profile-card:hover { transform: translateY(-3px); }
+
+        /* Image handling - using open source avatars */
+        .profile-image-container {
+            width: 100%;
+            padding-top: 100%; /* forces square aspect ratio */
+            position: relative;
+            background-color: #f0f0f0;
+        }
+
+        .profile-card img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-card h3 { margin: 10px 0 5px; font-size: 1rem; color: var(--text-main); }
+        .profile-card p { margin: 0; font-size: 0.8rem; color: var(--text-secondary); padding: 0 5px; }
+
+
+        /* ============================ */
+        /* CHAT SCREEN CSS */
+        /* ============================ */
+        #chat-interface {
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 60px); /* Fill space below header */
+        }
+
+        #chat-container {
+            width: 90%; max-width: 500px;
+            background: var(--header-bg);
+            border: 1px solid #DBDBDB;
+            border-radius: 12px;
+            display: flex; flex-direction: column;
+            height: 80vh; overflow: hidden;
+        }
+
+        #active-chat-header {
+            padding: 10px; border-bottom: 1px solid #DBDBDB;
+            display: flex; align-items: center; gap: 10px; font-weight: 600;
+        }
+        #active-chat-header img { width: 30px; height: 30px; border-radius: 50%; }
+
+        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+
+        .msg { padding: 8px 12px; border-radius: 18px; max-width: 75%; font-size: 0.95rem; line-height: 1.3; }
+        .user { align-self: flex-end; background-color: var(--bubble-user); color: #000; }
+        .ai { align-self: flex-start; background-color: var(--bubble-ai); color: #fff; }
+
+        #input-area {
+            display: flex; padding: 10px; border-top: 1px solid #DBDBDB; background: var(--header-bg);
+        }
+        #userInput {
+            flex: 1; border: 1px solid #DBDBDB; border-radius: 20px;
+            padding: 8px 15px; outline: none; background: var(--bg-color); color: var(--text-main);
+        }
+        #sendBtn {
+            background: none; border: none; color: var(--primary-accent);
+            font-weight: 600; margin-left: 10px; cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
-    <h2>Chat with AI</h2>
-    <div id="chat-box"></div>
-    <div>
-        <input type="text" id="user-input" placeholder="Say something...">
-        <button onclick="sendMessage()">Send</button>
+
+<header>
+    <button class="back-btn" id="backBtn" onclick="showGrid()">&lt; Profiles</button>
+    <h1 id="mainTitle">PersonaHub</h1>
+    <div style="width: 50px;"></div> </header>
+
+<div id="grid-screen" class="screen active-screen">
+    <div id="profile-grid">
+        <div class="section-header">Available AI Personas</div>
+        <div class="grid-container" id="gridContainer">
+            </div>
     </div>
+</div>
 
-    <script>
-        const chatBox = document.getElementById('chat-box');
-        const API_KEY = "YOUR_API_KEY_HERE"; // Get one from OpenAI or OpenRouter
+<div id="chat-screen" class="screen">
+    <div id="chat-interface">
+        <div id="chat-container">
+            <div id="active-chat-header">
+                <img src="" id="activeAiPhoto" alt="AI Photo">
+                <span id="activeAiName">AI Girl</span>
+            </div>
+            <div id="messages">
+                </div>
+            <div id="input-area">
+                <input type="text" id="userInput" placeholder="Message...">
+                <button id="sendBtn" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const text = input.value;
-            if (!text) return;
+<script>
+    /* ========================================= */
+    /* THE DATA: Define your characters here */
+    /* ========================================= */
+    const aiCharacters = [
+        { id: 1, name: "Sakura",  type: "Artist", bio: "Cherry blossoms & sketches.", photo: "https://api.dicebear.com/8.x/avataaars/svg?seed=Sakura&backgroundColor=ffdfbf,ffd5dc" },
+        { id: 2, name: "Luna",    type: "Gamer",  bio: "Pixel art and late nights.", photo: "https://api.dicebear.com/8.x/avataaars/svg?seed=Luna&backgroundColor=c0aede,b6e3f4" },
+        { id: 3, name: "Maya",    type: "Reader", bio: "Always has a book recommendation.", photo: "https://api.dicebear.com/8.x/avataaars/svg?seed=Maya&backgroundColor=ffdfbf,ffd5dc" },
+        { id: 4, name: "Aria",    type: "Musician", bio: "Violin student. Lo-fi beats.", photo: "https://api.dicebear.com/8.x/avataaars/svg?seed=Aria&backgroundColor=c0aede,b6e3f4" },
+        { id: 5, name: "Chloë",   type: "Chef",   bio: "Baking is a science!", photo: "https://api.dicebear.com/8.x/avataaars/svg?seed=Chloe&backgroundColor=ffdfbf,ffd5dc" },
+        { id: 6, name: "Jasmine", type: "Botanist", bio: "Plant mom. Tea lover.", photo: "https://api.dicebear.com/8.x/avataaars/svg?seed=Jasmine&backgroundColor=c0aede,b6e3f4" },
+    ];
 
-            // Display user message
-            chatBox.innerHTML += `<div class="message user">You: ${text}</div>`;
-            input.value = '';
+    let currentAi = null; // Stores which girl we are talking to
 
-            // Call AI API
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "openai/gpt-3.5-turbo",
-                    messages: [
-                        { role: "system", content: "You are a friendly and helpful AI girl named Sakura." },
-                        { role: "user", content: text }
-                    ]
-                })
-            });
+    /* ========================================= */
+    /* UI CONTROL: Screen Swapping */
+    /* ========================================= */
+    const gridScreen = document.getElementById('grid-screen');
+    const chatScreen = document.getElementById('chat-screen');
+    const backBtn = document.getElementById('backBtn');
+    const mainTitle = document.getElementById('mainTitle');
+    const msgDiv = document.getElementById('messages');
 
-            const data = await response.json();
-            const aiText = data.choices[0].message.content;
-            chatBox.innerHTML += `<div class="message ai">AI: ${aiText}</div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    </script>
+    // 1. Load the Grid on Startup
+    function loadGrid() {
+        const container = document.getElementById('gridContainer');
+        container.innerHTML = ''; // Clear existing
+
+        aiCharacters.forEach(char => {
+            container.innerHTML += `
+                <div class="profile-card" onclick="startChat(${char.id})">
+                    <div class="profile-image-container">
+                        <img src="${char.photo}" alt="${char.name}">
+                    </div>
+                    <h3>${char.name}</h3>
+                    <p>${char.type}</p>
+                </div>
+            `;
+        });
+    }
+
+    // 2. Go to the Chat Screen
+    function startChat(aiId) {
+        // Find the data for the specific ID clicked
+        currentAi = aiCharacters.find(c => c.id === aiId);
+
+        // Update the Chat Header
+        document.getElementById('activeAiPhoto').src = currentAi.photo;
+        document.getElementById('activeAiName').textContent = currentAi.name;
+        mainTitle.textContent = "Chat";
+
+        // Reset the message area
+        msgDiv.innerHTML = `<div class="msg ai">Hi! I'm ${currentAi.name}, the ${currentAi.type}. How's your day going?</div>`;
+
+        // Swap screens
+        gridScreen.classList.remove('active-screen');
+        chatScreen.classList.add('active-screen');
+        backBtn.style.display = 'block';
+    }
+
+    // 3. Go back to Grid Screen
+    function showGrid() {
+        gridScreen.classList.add('active-screen');
+        chatScreen.classList.remove('active-screen');
+        backBtn.style.display = 'none';
+        mainTitle.textContent = "PersonaHub";
+        currentAi = null; // Clear active AI
+    }
+
+
+    /* ========================================= */
+    /* CHAT LOGIC: Placeholder response */
+    /* ========================================= */
+    function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text || !currentAi) return;
+
+        // Show User Message
+        msgDiv.innerHTML += `<div class="msg user">${text}</div>`;
+        input.value = '';
+        msgDiv.scrollTop = msgDiv.scrollHeight; // Auto-scroll
+
+        // --- PLACEHOLDER RESPONSE ---
+        // We will connect the real API Brain in the NEXT step.
+        setTimeout(() => {
+            msgDiv.innerHTML += `<div class="msg ai">I am ${currentAi.name}. I received your message: "${text}". Connect my API key to get a real reply!</div>`;
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+        }, 1200);
+    }
+
+    // Allow 'Enter' key to send
+    document.getElementById('userInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // Run grid load immediately
+    loadGrid();
+
+</script>
+
 </body>
 </html>
