@@ -1,13 +1,24 @@
 export default async function handler(req, res) {
-    // Only allow POST requests
+    // 1. Security check: Only allow POST requests
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
     try {
-        // We now pull 'history' out of the request from your website
-        const { character, bio, message, history } = JSON.parse(req.body);
+        // 2. Parse the incoming data safely
+        // This ensures that even if the data arrives in different formats, we can read it.
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        const { character, bio, message, history } = body;
 
+        // 3. Prepare the conversation for the AI
+        // We combine: The Personality (System) + The Memory (History) + The New Message (User)
+        const chatMessages = [
+            { "role": "system", "content": `You are ${character}. ${bio}` },
+            ...(history || []), // If history is empty, it just skips this part
+            { "role": "user", "content": message }
+        ];
+
+        // 4. Talk to OpenRouter
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -16,23 +27,25 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 "model": "google/gemini-2.0-flash-001",
-                "messages": [
-                    { "role": "system", "content": `You are ${character}. ${bio}` },
-                    ...history, // This inserts all previous messages into the conversation
-                    { "role": "user", "content": message }
-                ]
+                "messages": chatMessages,
+                "temperature": 0.7 // This makes them sound more natural/human
             })
         });
 
         const data = await response.json();
 
+        // 5. Check for OpenRouter errors (like out of balance)
         if (data.error) {
+            console.error("OpenRouter Error:", data.error);
             return res.status(500).json({ error: data.error.message });
         }
 
-        res.status(200).json({ reply: data.choices[0].message.content });
+        // 6. Send the AI's reply back to your website
+        const aiReply = data.choices[0].message.content;
+        res.status(200).json({ reply: aiReply });
 
     } catch (err) {
+        console.error("Server Crash:", err);
         res.status(500).json({ error: "Server error: " + err.message });
     }
 }
